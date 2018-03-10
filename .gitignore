@@ -1,0 +1,9 @@
+boost_*
+build
+build_boost
+.vscode
+*.pyc
+__pycache__
+*.pyd
+*.egg-info
+dist
