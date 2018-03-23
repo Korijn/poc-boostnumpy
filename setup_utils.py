@@ -173,14 +173,27 @@ def get_python_include_dir():
     return include_dir
 
 
+def get_lib_dir(relative=False):
+    """
+    Returns path to lib dir.
+    """
+    if is_win:
+        lib = f"Lib"
+    else:
+        lib = f"lib/python{sys.version_info[0]}.{sys.version_info[1]}"
+
+    if not relative:
+        lib = join(sys.prefix, lib)
+        assert exists(lib)
+
+    return lib
+
+
 def get_site_packages_dir():
     """
     Returns absolute path to site packages dir.
     """
-    if is_win:
-        site_packages = f"{sys.prefix}\\Lib\\site-packages"
-    else:
-        site_packages = f"{sys.prefix}/lib/python{sys.version_info[0]}.{sys.version_info[1]}/site-packages"
+    site_packages = join(get_lib_dir(), "site-packages")
 
     assert exists(site_packages)
     return site_packages

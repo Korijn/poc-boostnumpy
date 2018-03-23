@@ -6,8 +6,11 @@ from os import listdir, makedirs, unlink
 from os.path import join, exists, abspath
 import re
 import shutil
+from sysconfig import get_paths
 
-from setup_utils import get_vcvarsall, is_win
+from setup_utils import get_vcvarsall, is_win, get_lib_dir
+
+sysconfig_paths = get_paths()
 
 
 def call(cmd, **kwargs):
@@ -18,41 +21,31 @@ def call(cmd, **kwargs):
 
 
 def main(args):
-    prefix = abspath("build_boost")
-    if "install" in args:
-        prefix = sys.prefix
-    bindir = "bin"
-    libdir = "lib"
+    build_prefix = abspath("build_boost")
+    pkg_prefix = abspath("hnpypkg")
+    toolset = "gcc"
+    sh_ext = "sh"
+    inlude = sysconfig_paths['include']
     if is_win:
-        bindir = "Scripts"
-        libdir = "libs"
         call(f"\"{get_vcvarsall()}\" amd64")
+        toolset = "msvc"
+        sh_ext = "bat"
     if "--init" in args:
-        call(f"bootstrap", cwd="boost_1_66_0")
-    call("b2"
-         " toolset=msvc"
+        call(f"./bootstrap.{sh_ext}", cwd="boost_1_66_0")
+    call("./b2"
+         f" toolset={toolset}"
          " address-model=64"
          " link=shared"
          " variant=release"
          " threading=multi"
          " runtime-link=shared"
+         f" include={inlude}"
          " --with-python"
          f" -j{cpu_count()}"
          " install"
-         f" --prefix=\"{prefix}\""
-         f" --libdir=\"{join(prefix, libdir)}\"",
+         f" --prefix=\"{build_prefix}\""
+         f" --libdir=\"{pkg_prefix}\"",
          cwd="boost_1_66_0")
-    if is_win:
-        makedirs(join(prefix, bindir), exist_ok=True)
-        for f in filter(lambda f: re.match('boost_.*\.(dll|exe)$', f), listdir(join(prefix, libdir))):
-            s = join(prefix, libdir, f)
-            d = join(prefix, bindir, f)
-            if not exists(d):
-                logging.info(f"moving misplaced binary {s} to {d}")
-                shutil.copy(s, d)
-            if exists(s):
-                logging.info(f"removing misplaced binary {s}")
-                unlink(s)
 
 
 if __name__ == "__main__":
