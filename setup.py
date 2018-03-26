@@ -1,20 +1,17 @@
-from setuptools import setup, Extension
-from setup_utils import is_win, get_data_files, get_package_data, BinaryDistribution
+# flake8: noqa
+from setuptools import Extension, find_packages, setup
+
+from setup_utils import get_data_files, get_package_data
+from version import __version__
 
 
-# leaving out headers for now, slows development cycle down significantly
-# 'include/boost-1_66'
-data_paths = ['lib', 'bin']
-if is_win:
-    data_paths = ['libs', 'Scripts']
-data_files = get_data_files('build_boost', data_paths)
-
-packages = ['hnpypkg']
+packages = find_packages()
 package_data = get_package_data(packages, exclude=('.py', '.pyc', '.cpp', '.h'))
-
+print(packages)
 
 setup(
     name='hnpypkg',
+    version=__version__,
     packages=packages,
     install_requires=['numpy'],
     ext_modules=[
@@ -24,8 +21,6 @@ setup(
                   library_dirs=['hnpypkg'],
                   libraries=["boost_python3", "boost_numpy3"]),
     ],
-    data_files=data_files,
     package_data=package_data,
     include_package_data=True,
-    distclass=BinaryDistribution,
 )
